@@ -1,0 +1,5 @@
+tools:
+  - name: money
+    description: Personal finance dashboard
+  - name: notes
+    description: Notes + knowledge base

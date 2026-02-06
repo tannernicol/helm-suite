@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Redaction check
+        run: python3 scripts/redact.py --self-check
+      - name: Run demo harness
+        run: python scripts/demo.py --config config/example.yaml
+      - name: Validate docs presence
+        run: |
+          test -f README.md
+          echo "Docs present."
