@@ -1,40 +1,87 @@
-# HelmV2 -- Host Your Own Internet
+# HelmV2
 
-> Named in homage to [The Helm](https://thehelm.com), a personal server company
-> that believed your data should live in your home. They ran out of funding, but
-> the mission lives on.
+**Replace 5 SaaS products with one Linux box and a Tailscale account.**
 
-A complete blueprint for building private, self-hosted infrastructure: local AI,
-photo management, Git hosting, private search, and more. All behind Tailscale
-with zero public exposure.
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Shell](https://img.shields.io/badge/shell-bash-blue.svg)](setup.sh)
+[![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](infra/compose/)
 
-## Why?
+In 2019, [The Helm](https://www.theverge.com/2019/11/21/20975649/time-best-inventions-2019-list) was named a TIME Best Invention -- a personal server that kept your data in your home. They ran out of funding. The mission didn't.
 
-You shouldn't need to trust cloud providers with your family photos, personal AI
-conversations, financial data, or search history. HelmV2 gives you the
-blueprint to host everything yourself on hardware you own.
+HelmV2 is a complete blueprint for replacing cloud services with self-hosted infrastructure on hardware you control. Everything runs behind Tailscale with **zero public exposure** -- your services are reachable from your devices, invisible to the rest of the internet.
 
-## What You Get
+| You're paying for | HelmV2 replaces it with | Cost |
+|---|---|---|
+| Google Photos ($30/yr) | **Immich** -- face recognition, maps, ML search | Free |
+| GitHub Pro ($48/yr) | **Gitea** -- unlimited private repos, CI runners | Free |
+| ChatGPT Plus ($240/yr) | **Ollama** -- run LLMs on your GPU, no data leaves | Free |
+| Google Search (your data) | **SearxNG** -- private metasearch, no tracking | Free |
+| 1Password/SSO ($36/yr) | **Authelia** -- single sign-on for all services | Free |
 
-| Service | What It Does | Stack |
-|---------|-------------|-------|
-| **Ollama** | Local LLM inference (GPU) | Docker + NVIDIA |
-| **Immich** | Google Photos replacement | Docker + GPU ML |
-| **Gitea** | GitHub replacement | Docker |
-| **SearxNG** | Private search engine | Docker |
-| **Authelia** | Single sign-on | Docker + Redis |
-| **Caddy** | Reverse proxy + TLS | Systemd |
-| **MCP Servers** | LLM tool access | Python + stdio |
-| **Monitoring** | Prometheus + Grafana | Docker |
+**Total saved: ~$350/yr** (plus you own your data)
 
 ## What Makes It Different
 
-- **Zero public exposure** -- Everything binds to Tailscale IP. Nothing on the public internet.
-- **Single config** -- One `.env` file generates all infrastructure configs.
-- **GPU-first** -- NVIDIA runtime for Ollama, Immich ML, and custom models.
-- **MCP server pattern** -- 3 example MCP servers so your LLMs can access your infrastructure.
-- **Self-healing** -- Systemd services with health checks, auto-restart, resource limits.
-- **Family-safe** -- DNS filtering, SSO, network-level controls.
+Most self-hosting guides show you how to run one container. HelmV2 gives you the whole stack:
+
+- **Zero public exposure** -- Everything binds to your Tailscale IP. Nothing on the public internet, ever.
+- **Single config** -- One `.env` file generates Caddy routes, Authelia policies, Docker Compose configs, and systemd services.
+- **GPU-first** -- NVIDIA runtime for Ollama (local LLMs), Immich ML (face recognition, CLIP search), and custom models.
+- **MCP servers** -- 3 ready-to-use MCP servers so your LLM tools can query databases, run local inference, and send notifications.
+- **Security audit built in** -- `security-audit` script checks DNS, port bindings, firewall, Docker, and Cloudflare tunnels.
+- **CLI management** -- `homelab status` shows everything at a glance.
+
+## How It Looks
+
+```
+$ ./scripts/homelab status
+
+HELMV2 STATUS
+=======================================================
+
+Infrastructure
+  ● Tailscale          100.64.0.1
+  ● Caddy              reverse proxy
+  ● Docker             12 containers
+
+Services
+  ● ollama
+  ● gitea
+  ● immich_server
+  ● immich_machine_learning
+  ● searxng
+  ● authelia
+  ● grafana
+  ● prometheus
+
+Ports
+  ● :11434  Ollama
+  ● :3030   Gitea
+  ● :2283   Immich
+  ● :8095   SearxNG
+  ● :9091   Authelia
+  ● :3100   Grafana
+```
+
+```
+$ ./scripts/security-audit
+
+1. Tailscale Status
+  [PASS] Tailscale connected (100.64.0.1)
+
+2. DNS Resolution
+  [PASS] git.home.example.com -> 100.64.0.1 (Tailscale IP)
+  [PASS] photos.home.example.com -> 100.64.0.1 (Tailscale IP)
+  [PASS] search.home.example.com -> 100.64.0.1 (Tailscale IP)
+
+3. Port Bindings
+  [PASS] No unexpected 0.0.0.0 bindings
+
+6. Cloudflare Tunnels
+  [PASS] No Cloudflare tunnels running
+
+All checks passed. Zero public exposure.
+```
 
 ## Architecture
 
@@ -80,7 +127,7 @@ cd infra/compose/gitea && docker compose up -d
 ./scripts/homelab status
 ```
 
-See [docs/QUICKSTART.md](docs/QUICKSTART.md) for the full walkthrough.
+See [docs/QUICKSTART.md](docs/QUICKSTART.md) for the full walkthrough (30 minutes, start to finish).
 
 ## Documentation
 
@@ -116,10 +163,52 @@ helmv2/
 - NVIDIA GPU (optional, for Ollama/Immich ML acceleration)
 - Domain name (for TLS certificates)
 
+## MCP Servers
+
+HelmV2 includes 3 MCP servers so your LLM tools can interact with your infrastructure:
+
+| Server | What it does |
+|--------|-------------|
+| `mcp/sqlite` | Read-only database access with keyword filtering |
+| `mcp/ollama` | Local LLM inference -- generation, code review, summarization |
+| `mcp/notifications` | Push notifications to desktop and phone via ntfy.sh |
+
+```json
+{
+  "mcpServers": {
+    "ollama": {
+      "command": "python3",
+      "args": ["mcp/ollama/server.py"]
+    }
+  }
+}
+```
+
+See [docs/MCP.md](docs/MCP.md) for the full pattern and how to build your own.
+
+## Project Status
+
+This is a working blueprint extracted from a production homelab. It runs 24/7 and has been through multiple iterations.
+
+- [x] Tailscale-only network with zero public exposure
+- [x] Caddy reverse proxy with Authelia SSO
+- [x] Docker Compose for all services (Ollama, Immich, Gitea, SearxNG, Monitoring)
+- [x] GPU passthrough for local LLMs and photo ML
+- [x] Security audit script with 6 automated checks
+- [x] CLI management tool (status, health, logs, restart)
+- [x] MCP servers for LLM tool integration
+- [x] Ansible playbooks for fresh machine bootstrap
+- [x] Automated backup with systemd timers
+- [ ] Multi-node setup documentation
+- [ ] Kubernetes migration path
+- [ ] Monitoring/alerting runbook
+
 ## Contributing
 
 This is a blueprint, not a product. Fork it, make it yours. If you improve
 something that would help others, PRs are welcome.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
