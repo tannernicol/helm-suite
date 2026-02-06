@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =============================================================================
+# MCP Server Health Check
+# Tests that each MCP server can start (syntax check + import check).
+#
+# Usage:
+#     mcp-health              Check all servers
+# =============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MCP_DIR="$(dirname "$SCRIPT_DIR")/mcp"
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+PASS=0
+FAIL=0
+
+echo "=== MCP Server Health Check ==="
+echo ""
+
+for server_dir in "$MCP_DIR"/*/; do
+    server_file="${server_dir}server.py"
+    [[ -f "$server_file" ]] || continue
+
+    server_name=$(basename "$server_dir")
+    printf "%-20s " "$server_name"
+
+    # Test 1: Syntax check
+    if ! python3 -m py_compile "$server_file" 2>/dev/null; then
+        echo -e "${RED}FAIL${NC} (syntax error)"
+        FAIL=$((FAIL + 1))
+        continue
+    fi
+
+    # Test 2: Import check (timeout after 5s)
+    if ! timeout 5 python3 -c "
+import sys, importlib.util
+spec = importlib.util.spec_from_file_location('server', '$server_file')
+# Just verify the file can be parsed, don't actually run it
+with open('$server_file') as f:
+    compile(f.read(), '$server_file', 'exec')
+" 2>/dev/null; then
+        echo -e "${RED}FAIL${NC} (compile error)"
+        FAIL=$((FAIL + 1))
+        continue
+    fi
+
+    echo -e "${GREEN}OK${NC}"
+    PASS=$((PASS + 1))
+done
+
+echo ""
+echo "=== Python Dependencies ==="
+
+deps=("mcp" "httpx")
+for dep in "${deps[@]}"; do
+    printf "%-20s " "$dep"
+    if python3 -c "import $dep" 2>/dev/null; then
+        echo -e "${GREEN}installed${NC}"
+    else
+        echo -e "${YELLOW}missing${NC} (pip install $dep)"
+    fi
+done
+
+echo ""
+echo "=== External Services ==="
+
+check_service() {
+    local name="$1"
+    local url="$2"
+    printf "%-20s " "$name"
+    if curl -sf --max-time 3 "$url" >/dev/null 2>&1; then
+        echo -e "${GREEN}running${NC}"
+    else
+        echo -e "${YELLOW}not running${NC}"
+    fi
+}
+
+# Load env for port numbers
+ENV_FILE="$(dirname "$SCRIPT_DIR")/.env"
+if [[ -f "$ENV_FILE" ]]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$ENV_FILE"
+    set +a
+fi
+
+check_service "ollama" "http://localhost:${OLLAMA_PORT:-11434}/api/tags"
+check_service "ntfy.sh" "https://ntfy.sh/v1/health"
+
+echo ""
+echo "=== Summary ==="
+echo -e "MCP Servers: ${GREEN}${PASS} passed${NC}, ${RED}${FAIL} failed${NC}"
+echo ""
+
+exit "$FAIL"

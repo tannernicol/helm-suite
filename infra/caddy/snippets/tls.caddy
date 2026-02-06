@@ -1,0 +1,10 @@
+# TLS configuration snippet
+# Import in site blocks: import tls_config
+#
+# Uses certificate files specified in .env.
+# For Caddy's automatic HTTPS (ACME), remove this snippet and
+# let Caddy manage certificates automatically.
+
+(tls_config) {
+    tls {$TLS_CERT_PATH} {$TLS_KEY_PATH}
+}

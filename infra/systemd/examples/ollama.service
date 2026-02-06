@@ -1,0 +1,26 @@
+# Ollama LLM inference server (native, non-Docker)
+# Use this if you prefer running Ollama directly instead of in Docker.
+#
+# Install: sudo cp ollama.service /etc/systemd/system/
+#          sudo systemctl enable --now ollama
+
+[Unit]
+Description=Ollama LLM Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/ollama serve
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+Environment=OLLAMA_HOST=127.0.0.1
+Environment=OLLAMA_MAX_LOADED_MODELS=2
+Environment=NVIDIA_VISIBLE_DEVICES=all
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,36 @@
+# GPU-aware application service template
+# For services that need NVIDIA GPU access.
+#
+# Requires: nvidia-container-toolkit for Docker, or
+#           direct CUDA access for native processes.
+
+[Unit]
+Description=${APP_NAME} (GPU)
+After=network-online.target nvidia-persistenced.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=${APP_USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${APP_EXEC}
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# GPU environment
+Environment=NVIDIA_VISIBLE_DEVICES=all
+Environment=CUDA_VISIBLE_DEVICES=0
+
+# Resource limits -- leave GPU memory to the application
+MemoryMax=4G
+CPUQuota=200%
+
+# Lower priority so interactive use isn't affected
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+
+[Install]
+WantedBy=multi-user.target

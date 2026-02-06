@@ -1,0 +1,96 @@
+name: immich
+
+services:
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    volumes:
+      - ${IMMICH_UPLOAD_LOCATION:-/srv/helmv2/immich/upload}:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DB_HOSTNAME=database
+      - DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+      - DB_DATABASE_NAME=${IMMICH_DB_NAME:-immich}
+      - REDIS_HOSTNAME=redis
+      # GPU support for video transcoding
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+    ports:
+      - "127.0.0.1:${IMMICH_PORT:-2283}:2283"
+    depends_on:
+      - redis
+      - database
+    restart: unless-stopped
+    # GPU support -- remove this block if GPU_ENABLED=false
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, video]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2283/api/server/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # Use -cuda suffix for GPU acceleration, remove for CPU-only
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
+    volumes:
+      - immich-ml-cache:/cache
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  redis:
+    container_name: immich_redis
+    image: redis:7-alpine
+    volumes:
+      - immich-redis:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  database:
+    container_name: immich_postgres
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0
+    environment:
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
+      - POSTGRES_USER=${IMMICH_DB_USERNAME:-immich}
+      - POSTGRES_DB=${IMMICH_DB_NAME:-immich}
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    volumes:
+      - ${IMMICH_DB_DATA_LOCATION:-/srv/helmv2/immich/postgres}:/var/lib/postgresql/data
+    restart: unless-stopped
+    command: >
+      postgres
+        -c shared_preload_libraries=vectors.so
+        -c 'search_path="$$user", public, vectors'
+        -c logging_collector=on
+        -c max_wal_size=2GB
+        -c shared_buffers=512MB
+        -c wal_compression=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --dbname=${IMMICH_DB_NAME:-immich} --username=${IMMICH_DB_USERNAME:-immich}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  immich-ml-cache:
+  immich-redis:

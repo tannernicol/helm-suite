@@ -1,0 +1,16 @@
+# Daily backup timer
+# Pairs with backup.service (created by setup.sh)
+#
+# Install: cp backup.timer ~/.config/systemd/user/
+#          systemctl --user enable --now backup.timer
+
+[Unit]
+Description=Daily HelmV2 backup
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=600
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =============================================================================
+# HelmV2 Backup
+# Backs up service data to NAS or local backup directory.
+#
+# Usage:
+#     backup                  Run full backup
+#     backup --dry-run        Show what would be backed up
+# =============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="${REPO_DIR}/.env"
+
+# -- Colors -------------------------------------------------------------------
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+DRY_RUN=false
+[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
+
+# Load environment
+if [[ -f "$ENV_FILE" ]]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$ENV_FILE"
+    set +a
+fi
+
+BACKUP_DIR="${BACKUP_DIR:-/mnt/nas/Backups}"
+BACKUP_DEST="${BACKUP_DIR}/helmv2"
+DATE=$(date +%Y-%m-%d)
+BACKUP_PATH="${BACKUP_DEST}/${DATE}"
+
+echo -e "${BOLD}HelmV2 Backup${NC}"
+echo "$(printf '=%.0s' {1..40})"
+echo "Destination: ${BACKUP_PATH}"
+echo ""
+
+# Check backup destination is accessible
+if [[ ! -d "$BACKUP_DIR" ]]; then
+    echo -e "${RED}Backup directory not accessible: ${BACKUP_DIR}${NC}"
+    echo "Check NAS mount or set BACKUP_DIR in .env"
+    exit 1
+fi
+
+# Create backup directory
+if [[ "$DRY_RUN" == "false" ]]; then
+    mkdir -p "$BACKUP_PATH"
+fi
+
+# Helper function
+backup_dir() {
+    local src="$1"
+    local name="$2"
+
+    if [[ ! -d "$src" ]]; then
+        echo -e "  ${YELLOW}[SKIP]${NC} ${name} -- source not found: ${src}"
+        return
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        local size
+        size=$(du -sh "$src" 2>/dev/null | awk '{print $1}')
+        echo -e "  [DRY] ${name} (${size}) -> ${BACKUP_PATH}/${name}/"
+    else
+        echo -n "  Backing up ${name}... "
+        rsync -a --delete "$src/" "${BACKUP_PATH}/${name}/" 2>/dev/null
+        echo -e "${GREEN}done${NC}"
+    fi
+}
+
+backup_file() {
+    local src="$1"
+    local name="$2"
+
+    if [[ ! -f "$src" ]]; then
+        echo -e "  ${YELLOW}[SKIP]${NC} ${name} -- file not found: ${src}"
+        return
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo -e "  [DRY] ${name} -> ${BACKUP_PATH}/${name}"
+    else
+        echo -n "  Backing up ${name}... "
+        cp "$src" "${BACKUP_PATH}/${name}"
+        echo -e "${GREEN}done${NC}"
+    fi
+}
+
+# -- Backup service data -------------------------------------------------------
+echo -e "\n${BOLD}Service Data${NC}"
+
+backup_dir "/srv/helmv2/gitea/data" "gitea-data"
+backup_dir "/srv/helmv2/gitea/config" "gitea-config"
+backup_dir "/srv/helmv2/authelia" "authelia"
+backup_dir "/srv/helmv2/grafana/data" "grafana-data"
+backup_dir "/srv/helmv2/searxng/config" "searxng-config"
+
+# -- Backup configs ------------------------------------------------------------
+echo -e "\n${BOLD}Configuration${NC}"
+
+backup_file "/srv/helmv2/caddy/Caddyfile" "Caddyfile"
+backup_file "/srv/helmv2/.env" "env-backup"
+
+# -- Backup Docker volumes (databases) ----------------------------------------
+echo -e "\n${BOLD}Docker Volumes (database dumps)${NC}"
+
+# Immich Postgres dump
+if docker exec immich_postgres pg_isready &>/dev/null 2>&1; then
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo -e "  [DRY] immich-db -> ${BACKUP_PATH}/immich-db.sql.gz"
+    else
+        echo -n "  Dumping Immich database... "
+        docker exec immich_postgres pg_dump -U "${IMMICH_DB_USERNAME:-immich}" \
+            "${IMMICH_DB_NAME:-immich}" 2>/dev/null | \
+            gzip > "${BACKUP_PATH}/immich-db.sql.gz"
+        echo -e "${GREEN}done${NC}"
+    fi
+else
+    echo -e "  ${YELLOW}[SKIP]${NC} Immich database -- not running"
+fi
+
+# -- Cleanup old backups (keep 7 days) ----------------------------------------
+echo -e "\n${BOLD}Cleanup${NC}"
+
+if [[ "$DRY_RUN" == "false" && -d "$BACKUP_DEST" ]]; then
+    OLD_COUNT=$(find "$BACKUP_DEST" -maxdepth 1 -type d -mtime +7 | wc -l)
+    if [[ "$OLD_COUNT" -gt 0 ]]; then
+        find "$BACKUP_DEST" -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +
+        echo -e "  Removed ${OLD_COUNT} backup(s) older than 7 days"
+    else
+        echo -e "  No old backups to clean up"
+    fi
+else
+    echo -e "  [DRY] Would remove backups older than 7 days"
+fi
+
+# -- Summary -------------------------------------------------------------------
+echo ""
+if [[ "$DRY_RUN" == "true" ]]; then
+    echo -e "${YELLOW}Dry run complete. No files were modified.${NC}"
+else
+    TOTAL_SIZE=$(du -sh "$BACKUP_PATH" 2>/dev/null | awk '{print $1}')
+    echo -e "${GREEN}Backup complete: ${BACKUP_PATH} (${TOTAL_SIZE})${NC}"
+fi

@@ -1,0 +1,13 @@
+# Authelia forward-auth snippet
+# Import in site blocks: import authelia
+#
+# This sends every request to Authelia for verification before proxying.
+# Authelia checks the session cookie and returns 200 (authorized) or
+# redirects to the login page.
+
+(authelia) {
+    forward_auth localhost:{$AUTHELIA_PORT} {
+        uri /api/verify?rd=https://auth.{$DOMAIN}
+        copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+    }
+}

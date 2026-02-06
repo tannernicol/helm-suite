@@ -1,0 +1,133 @@
+---
+# Deploy Docker Compose services
+
+- name: Install Python MCP dependencies
+  pip:
+    name:
+      - mcp
+      - httpx
+    extra_args: --user
+  become_user: "{{ username }}"
+  ignore_errors: true
+
+- name: Create shared .env for compose files
+  shell: |
+    set -a
+    source {{ helmv2_dir }}/.env
+    set +a
+    cat > {{ data_dir }}/.env << ENVEOF
+    DOMAIN=${DOMAIN}
+    TAILSCALE_IP=${TAILSCALE_IP}
+    TIMEZONE=${TIMEZONE:-America/Los_Angeles}
+    GPU_ENABLED=${GPU_ENABLED:-false}
+    OLLAMA_PORT=${OLLAMA_PORT:-11434}
+    GITEA_HTTP_PORT=${GITEA_HTTP_PORT:-3030}
+    GITEA_SSH_PORT=${GITEA_SSH_PORT:-2222}
+    IMMICH_PORT=${IMMICH_PORT:-2283}
+    SEARXNG_PORT=${SEARXNG_PORT:-8095}
+    AUTHELIA_PORT=${AUTHELIA_PORT:-9091}
+    GRAFANA_PORT=${GRAFANA_PORT:-3100}
+    GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    IMMICH_DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
+    IMMICH_DB_PASSWORD=${IMMICH_DB_PASSWORD}
+    IMMICH_DB_NAME=${IMMICH_DB_NAME:-immich}
+    IMMICH_UPLOAD_LOCATION=${IMMICH_UPLOAD_LOCATION:-/srv/helmv2/immich/upload}
+    IMMICH_DB_DATA_LOCATION=${IMMICH_DB_DATA_LOCATION:-/srv/helmv2/immich/postgres}
+    NTFY_TOPIC=${NTFY_TOPIC:-helmv2-alerts}
+    AUTHELIA_JWT_SECRET=${AUTHELIA_JWT_SECRET}
+    AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
+    AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_STORAGE_ENCRYPTION_KEY}
+    ENVEOF
+  become_user: "{{ username }}"
+
+- name: Start Authelia
+  shell: |
+    cd {{ helmv2_dir }}/infra/compose/../../infra/authelia
+    docker compose --env-file {{ data_dir }}/.env up -d
+  become_user: "{{ username }}"
+  ignore_errors: true
+
+- name: Start Gitea
+  shell: |
+    cd {{ helmv2_dir }}/infra/compose/gitea
+    docker compose --env-file {{ data_dir }}/.env up -d
+  become_user: "{{ username }}"
+  ignore_errors: true
+
+- name: Start SearxNG
+  shell: |
+    cd {{ helmv2_dir }}/infra/compose/searxng
+    docker compose --env-file {{ data_dir }}/.env up -d
+  become_user: "{{ username }}"
+  ignore_errors: true
+
+- name: Start Monitoring
+  shell: |
+    cd {{ helmv2_dir }}/infra/compose/monitoring
+    docker compose --env-file {{ data_dir }}/.env up -d
+  become_user: "{{ username }}"
+  ignore_errors: true
+
+- name: Start Ollama (GPU)
+  shell: |
+    cd {{ helmv2_dir }}/infra/compose/ollama
+    docker compose --env-file {{ data_dir }}/.env up -d
+  become_user: "{{ username }}"
+  when: gpu_enabled | bool
+  ignore_errors: true
+
+- name: Start Immich (GPU)
+  shell: |
+    cd {{ helmv2_dir }}/infra/compose/immich
+    docker compose --env-file {{ data_dir }}/.env up -d
+  become_user: "{{ username }}"
+  when: gpu_enabled | bool
+  ignore_errors: true
+
+- name: Install backup timer
+  copy:
+    content: |
+      [Unit]
+      Description=HelmV2 Backup
+
+      [Service]
+      Type=oneshot
+      ExecStart={{ helmv2_dir }}/scripts/backup
+      Nice=15
+      IOSchedulingClass=idle
+    dest: "/home/{{ username }}/.config/systemd/user/sovereign-backup.service"
+    owner: "{{ username }}"
+    mode: "0644"
+
+- name: Install backup timer unit
+  copy:
+    content: |
+      [Unit]
+      Description=Daily HelmV2 backup
+
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+      RandomizedDelaySec=600
+
+      [Install]
+      WantedBy=timers.target
+    dest: "/home/{{ username }}/.config/systemd/user/sovereign-backup.timer"
+    owner: "{{ username }}"
+    mode: "0644"
+
+- name: Create systemd user directory
+  file:
+    path: "/home/{{ username }}/.config/systemd/user"
+    state: directory
+    owner: "{{ username }}"
+    mode: "0755"
+
+- name: Show completion message
+  debug:
+    msg: |
+      HelmV2 deployment complete!
+
+      Start Caddy: sudo systemctl start caddy-sovereign
+      Check status: {{ helmv2_dir }}/scripts/homelab status
+      Security audit: {{ helmv2_dir }}/scripts/security-audit

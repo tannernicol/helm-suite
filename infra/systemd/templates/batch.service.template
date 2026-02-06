@@ -1,0 +1,27 @@
+# Background batch job template
+# For periodic tasks that should not impact interactive use.
+# Pair with a .timer file for scheduling.
+
+[Unit]
+Description=${APP_NAME} batch job
+
+[Service]
+Type=oneshot
+User=${APP_USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${APP_EXEC}
+
+# Low priority
+Nice=15
+IOSchedulingClass=idle
+CPUQuota=30%
+
+# Timeout for batch jobs
+TimeoutStartSec=600
+TimeoutStopSec=60
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=${APP_DATA_DIR}

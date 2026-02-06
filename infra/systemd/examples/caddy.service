@@ -1,0 +1,29 @@
+# Caddy reverse proxy for HelmV2
+#
+# Install: sudo cp caddy.service /etc/systemd/system/caddy-sovereign.service
+#          sudo systemctl enable --now caddy-sovereign
+
+[Unit]
+Description=Caddy Reverse Proxy (HelmV2)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/caddy run --config /srv/helmv2/caddy/Caddyfile
+ExecReload=/usr/bin/caddy reload --config /srv/helmv2/caddy/Caddyfile
+Restart=always
+RestartSec=10
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Caddy needs high file descriptor limit for many connections
+LimitNOFILE=1048576
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/helmv2/caddy
+
+[Install]
+WantedBy=multi-user.target

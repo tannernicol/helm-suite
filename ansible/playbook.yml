@@ -1,0 +1,31 @@
+---
+# HelmV2 Bootstrap Playbook
+# Bootstraps a fresh Linux machine with all infrastructure.
+#
+# Usage:
+#   ansible-playbook -i "localhost," -c local playbook.yml
+#   ansible-playbook -i inventory.yml playbook.yml
+#
+# Variables: Set in group_vars, host_vars, or pass with -e
+#   domain: home.example.com
+#   tailscale_authkey: tskey-auth-xxxxx
+#   gpu_enabled: true
+#   username: youruser
+
+- name: Bootstrap HelmV2
+  hosts: all
+  become: true
+  vars:
+    domain: "{{ lookup('env', 'DOMAIN') | default('home.example.com', true) }}"
+    username: "{{ lookup('env', 'USERNAME') | default('user', true) }}"
+    gpu_enabled: "{{ lookup('env', 'GPU_ENABLED') | default('false', true) }}"
+    tailscale_authkey: "{{ lookup('env', 'TAILSCALE_AUTHKEY') | default('', true) }}"
+    helmv2_dir: "/home/{{ username }}/helmv2"
+    data_dir: "/srv/helmv2"
+
+  roles:
+    - base
+    - tailscale
+    - docker
+    - caddy
+    - services

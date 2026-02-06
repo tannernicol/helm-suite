@@ -1,0 +1,56 @@
+---
+# Install and configure Tailscale VPN
+
+- name: Check if Tailscale is installed
+  command: which tailscale
+  register: tailscale_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Tailscale
+  when: tailscale_check.rc != 0
+  block:
+    - name: Download Tailscale install script
+      get_url:
+        url: https://tailscale.com/install.sh
+        dest: /tmp/tailscale-install.sh
+        mode: "0755"
+
+    - name: Run Tailscale installer
+      command: /tmp/tailscale-install.sh
+      args:
+        creates: /usr/bin/tailscale
+
+    - name: Clean up installer
+      file:
+        path: /tmp/tailscale-install.sh
+        state: absent
+
+- name: Enable and start Tailscale service
+  systemd:
+    name: tailscaled
+    state: started
+    enabled: true
+
+- name: Authenticate Tailscale (if authkey provided)
+  command: tailscale up --authkey={{ tailscale_authkey }}
+  when: tailscale_authkey | length > 0
+  register: tailscale_up
+  changed_when: "'Success' in tailscale_up.stdout"
+  failed_when: false
+
+- name: Check Tailscale status
+  command: tailscale status
+  register: ts_status
+  changed_when: false
+  ignore_errors: true
+
+- name: Show Tailscale IP
+  command: tailscale ip -4
+  register: ts_ip
+  changed_when: false
+  ignore_errors: true
+
+- name: Display Tailscale info
+  debug:
+    msg: "Tailscale IP: {{ ts_ip.stdout | default('not connected -- run: sudo tailscale up') }}"

@@ -1,0 +1,31 @@
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__server__ROOT_URL=https://git.${DOMAIN}/
+      - GITEA__server__HTTP_PORT=3000
+      - GITEA__server__DOMAIN=git.${DOMAIN}
+      - GITEA__server__SSH_DOMAIN=git.${DOMAIN}
+      - GITEA__server__SSH_PORT=${GITEA_SSH_PORT:-2222}
+    volumes:
+      - gitea-data:/data
+      - gitea-config:/etc/gitea
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "127.0.0.1:${GITEA_HTTP_PORT:-3030}:3000"
+      - "127.0.0.1:${GITEA_SSH_PORT:-2222}:22"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  gitea-data:
+  gitea-config:

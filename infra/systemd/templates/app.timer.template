@@ -1,0 +1,21 @@
+# Standard timer template
+# Pairs with a .service file of the same name.
+#
+# Install: sudo cp myapp.timer /etc/systemd/system/
+#          sudo systemctl enable --now myapp.timer
+
+[Unit]
+Description=Run ${APP_NAME} on schedule
+
+[Timer]
+# Examples:
+#   OnCalendar=hourly
+#   OnCalendar=daily
+#   OnCalendar=*-*-* 03:00:00      (3 AM daily)
+#   OnCalendar=Mon *-*-* 06:00:00  (Monday 6 AM)
+OnCalendar=${APP_SCHEDULE}
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

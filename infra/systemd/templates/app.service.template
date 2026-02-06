@@ -1,0 +1,33 @@
+# Standard application service template
+# Copy and replace ${APP_*} variables with your values.
+#
+# Install: sudo cp myapp.service /etc/systemd/system/
+#          sudo systemctl enable --now myapp
+
+[Unit]
+Description=${APP_NAME}
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=${APP_USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${APP_EXEC}
+Restart=always
+RestartSec=10
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=100%
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=${APP_DATA_DIR}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,211 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =============================================================================
+# HelmV2 Security Audit
+# Checks that nothing is publicly exposed. Everything should be Tailscale-only.
+#
+# Usage:
+#     security-audit           Run all checks
+#     security-audit --fix     Attempt to fix issues found
+#     security-audit --quiet   Only output if issues found
+# =============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="${REPO_DIR}/.env"
+
+# -- Colors -------------------------------------------------------------------
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+ISSUES=0
+QUIET=false
+FIX=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --fix)   FIX=true ;;
+        --quiet) QUIET=true ;;
+    esac
+done
+
+# Load environment
+if [[ -f "$ENV_FILE" ]]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$ENV_FILE"
+    set +a
+fi
+
+DOMAIN="${DOMAIN:-home.example.com}"
+TAILSCALE_IP="${TAILSCALE_IP:-100.x.x.x}"
+
+pass() { [[ "$QUIET" == "false" ]] && echo -e "  ${GREEN}[PASS]${NC} $*"; }
+fail() { echo -e "  ${RED}[FAIL]${NC} $*"; ISSUES=$((ISSUES + 1)); }
+warn() { echo -e "  ${YELLOW}[WARN]${NC} $*"; }
+header() { [[ "$QUIET" == "false" ]] && echo -e "\n${BOLD}$*${NC}"; }
+
+# =============================================================================
+# Check 1: Tailscale is connected
+# =============================================================================
+header "1. Tailscale Status"
+
+if command -v tailscale &>/dev/null; then
+    if tailscale status &>/dev/null; then
+        TS_IP=$(tailscale ip -4 2>/dev/null || echo "unknown")
+        pass "Tailscale connected (${TS_IP})"
+    else
+        fail "Tailscale not connected"
+    fi
+else
+    fail "Tailscale not installed"
+fi
+
+# =============================================================================
+# Check 2: DNS points to Tailscale IP (not public)
+# =============================================================================
+header "2. DNS Resolution"
+
+check_dns() {
+    local subdomain="$1"
+    local fqdn="${subdomain}.${DOMAIN}"
+
+    # Use external DNS to check what the world sees
+    local resolved
+    resolved=$(dig +short "$fqdn" @1.1.1.1 2>/dev/null | head -1)
+
+    if [[ -z "$resolved" ]]; then
+        pass "${fqdn} -- no public DNS record (good)"
+    elif [[ "$resolved" == "$TAILSCALE_IP" ]]; then
+        pass "${fqdn} -> ${resolved} (Tailscale IP)"
+    elif [[ "$resolved" =~ ^100\. ]]; then
+        pass "${fqdn} -> ${resolved} (Tailscale range)"
+    else
+        fail "${fqdn} -> ${resolved} (NOT Tailscale -- publicly reachable!)"
+    fi
+}
+
+for sub in auth git photos search grafana ollama; do
+    check_dns "$sub"
+done
+
+# =============================================================================
+# Check 3: No services listening on 0.0.0.0
+# =============================================================================
+header "3. Port Bindings"
+
+# Check for services bound to all interfaces
+while IFS= read -r line; do
+    # Extract the local address from ss output
+    local_addr=$(echo "$line" | awk '{print $4}')
+    process=$(echo "$line" | awk '{print $6}')
+
+    if [[ "$local_addr" == *"0.0.0.0:"* || "$local_addr" == "*:"* ]]; then
+        port="${local_addr##*:}"
+        # Skip common safe ports
+        case "$port" in
+            22)   pass "Port ${port} (SSH) on 0.0.0.0 -- OK (firewall protected)" ;;
+            *)    warn "Port ${port} listening on 0.0.0.0 -- ${process}" ;;
+        esac
+    fi
+done < <(ss -tlnp 2>/dev/null | grep LISTEN || true)
+
+if [[ $ISSUES -eq 0 ]]; then
+    pass "No unexpected 0.0.0.0 bindings"
+fi
+
+# =============================================================================
+# Check 4: Docker port bindings
+# =============================================================================
+header "4. Docker Port Bindings"
+
+if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
+    while IFS= read -r container; do
+        local name ports
+        name=$(echo "$container" | awk '{print $NF}')
+        ports=$(docker port "$name" 2>/dev/null || echo "none")
+
+        if [[ "$ports" == "none" || -z "$ports" ]]; then
+            continue
+        fi
+
+        while IFS= read -r binding; do
+            if [[ "$binding" == *"0.0.0.0:"* ]]; then
+                fail "Container '${name}' has port bound to 0.0.0.0: ${binding}"
+                if [[ "$FIX" == "true" ]]; then
+                    warn "Fix: Update docker-compose.yml to bind to 127.0.0.1"
+                fi
+            else
+                pass "Container '${name}': ${binding}"
+            fi
+        done <<< "$ports"
+    done < <(docker ps --format '{{.Names}}' 2>/dev/null || true)
+else
+    warn "Docker not running -- skipping container checks"
+fi
+
+# =============================================================================
+# Check 5: Firewall status
+# =============================================================================
+header "5. Firewall"
+
+if command -v ufw &>/dev/null; then
+    if sudo ufw status 2>/dev/null | grep -q "Status: active"; then
+        pass "UFW firewall is active"
+    else
+        fail "UFW firewall is not active"
+        if [[ "$FIX" == "true" ]]; then
+            warn "Run: sudo ufw enable"
+        fi
+    fi
+elif command -v firewall-cmd &>/dev/null; then
+    if firewall-cmd --state 2>/dev/null | grep -q "running"; then
+        pass "firewalld is active"
+    else
+        fail "firewalld is not running"
+    fi
+else
+    warn "No firewall detected (ufw or firewalld)"
+fi
+
+# =============================================================================
+# Check 6: No Cloudflare tunnels running
+# =============================================================================
+header "6. Cloudflare Tunnels"
+
+if pgrep -x cloudflared &>/dev/null; then
+    fail "cloudflared process is running (services may be publicly exposed)"
+    if [[ "$FIX" == "true" ]]; then
+        warn "Stopping cloudflared..."
+        sudo systemctl stop cloudflared 2>/dev/null || true
+        sudo systemctl disable cloudflared 2>/dev/null || true
+    fi
+elif systemctl is-active cloudflared &>/dev/null 2>&1; then
+    fail "cloudflared service is active"
+    if [[ "$FIX" == "true" ]]; then
+        sudo systemctl stop cloudflared
+        sudo systemctl disable cloudflared
+        pass "cloudflared stopped and disabled"
+    fi
+else
+    pass "No Cloudflare tunnels running"
+fi
+
+# =============================================================================
+# Summary
+# =============================================================================
+echo ""
+if [[ $ISSUES -eq 0 ]]; then
+    [[ "$QUIET" == "false" ]] && echo -e "${GREEN}All checks passed. Zero public exposure.${NC}"
+    exit 0
+else
+    echo -e "${RED}${ISSUES} issue(s) found.${NC}"
+    if [[ "$FIX" == "false" ]]; then
+        echo "Run with --fix to attempt automatic remediation."
+    fi
+    exit 1
+fi

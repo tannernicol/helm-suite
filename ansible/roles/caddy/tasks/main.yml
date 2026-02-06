@@ -1,0 +1,74 @@
+---
+# Install Caddy reverse proxy
+
+- name: Check if Caddy is installed
+  command: which caddy
+  register: caddy_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Caddy (apt)
+  when: caddy_check.rc != 0 and pkg_manager == "apt"
+  block:
+    - name: Add Caddy GPG key
+      shell: |
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | \
+          gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+
+    - name: Add Caddy repo
+      shell: |
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | \
+          tee /etc/apt/sources.list.d/caddy-stable.list
+      args:
+        creates: /etc/apt/sources.list.d/caddy-stable.list
+
+    - name: Install Caddy
+      apt:
+        name: caddy
+        state: present
+        update_cache: true
+
+- name: Install Caddy (dnf)
+  when: caddy_check.rc != 0 and pkg_manager == "dnf"
+  block:
+    - name: Add Caddy COPR repo
+      command: dnf copr enable @caddy/caddy -y
+      args:
+        creates: /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:group_caddy:caddy.repo
+
+    - name: Install Caddy
+      dnf:
+        name: caddy
+        state: present
+
+- name: Stop default Caddy service (we use our own)
+  systemd:
+    name: caddy
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+- name: Generate Caddyfile from template
+  shell: |
+    set -a
+    source {{ helmv2_dir }}/.env
+    set +a
+    envsubst < {{ helmv2_dir }}/infra/caddy/Caddyfile.template > {{ data_dir }}/caddy/Caddyfile
+  args:
+    creates: "{{ data_dir }}/caddy/Caddyfile"
+  become_user: "{{ username }}"
+
+- name: Install HelmV2 Caddy service
+  template:
+    src: caddy.service.j2
+    dest: /etc/systemd/system/caddy-sovereign.service
+    mode: "0644"
+  notify: restart caddy-sovereign
+
+- name: Enable Caddy service
+  systemd:
+    name: caddy-sovereign
+    enabled: true
+    daemon_reload: true

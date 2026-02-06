@@ -1,0 +1,37 @@
+# Example: Adding a new service to Caddy
+#
+# 1. Copy this file: cp example.caddy myservice.caddy
+# 2. Replace the domain and port
+# 3. Run setup.sh to regenerate the Caddyfile, or add manually
+#
+# With authentication:
+#
+#   myservice.${DOMAIN} {
+#       import tls_config
+#       import authelia
+#       reverse_proxy localhost:8080
+#   }
+#
+# Without authentication (e.g., API endpoints):
+#
+#   api.${DOMAIN} {
+#       import tls_config
+#       reverse_proxy localhost:8081
+#   }
+#
+# Static file serving:
+#
+#   docs.${DOMAIN} {
+#       import tls_config
+#       import authelia
+#       root * /var/www/docs
+#       file_server
+#   }
+#
+# Proxy to another machine (e.g., NAS):
+#
+#   nas.${DOMAIN} {
+#       import tls_config
+#       import authelia
+#       reverse_proxy http://${NAS_IP}:8080
+#   }

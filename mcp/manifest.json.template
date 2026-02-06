@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "python3",
+      "args": ["${MCP_DIR}/sqlite/server.py"],
+      "description": "Read-only SQLite database access",
+      "category": "data",
+      "required": false
+    },
+    "ollama": {
+      "command": "python3",
+      "args": ["${MCP_DIR}/ollama/server.py"],
+      "env": {
+        "OLLAMA_URL": "http://localhost:${OLLAMA_PORT}"
+      },
+      "description": "Local LLM inference via Ollama",
+      "category": "ai",
+      "required": false
+    },
+    "notifications": {
+      "command": "python3",
+      "args": ["${MCP_DIR}/notifications/server.py"],
+      "env": {
+        "NTFY_TOPIC": "${NTFY_TOPIC}"
+      },
+      "description": "Push notifications to desktop and phone",
+      "category": "alerts",
+      "required": false
+    }
+  }
+}

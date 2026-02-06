@@ -1,0 +1,120 @@
+---
+# Base system setup: packages, firewall, directories
+
+- name: Detect package manager
+  set_fact:
+    pkg_manager: "{{ 'dnf' if ansible_pkg_mgr == 'dnf' else 'apt' }}"
+
+- name: Install base packages (apt)
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - jq
+      - htop
+      - rsync
+      - gettext-base
+      - python3
+      - python3-pip
+      - ufw
+      - unzip
+    state: present
+    update_cache: true
+  when: pkg_manager == "apt"
+
+- name: Install base packages (dnf)
+  dnf:
+    name:
+      - curl
+      - wget
+      - git
+      - jq
+      - htop
+      - rsync
+      - gettext
+      - python3
+      - python3-pip
+      - firewalld
+      - unzip
+    state: present
+  when: pkg_manager == "dnf"
+
+- name: Configure UFW firewall (apt systems)
+  when: pkg_manager == "apt"
+  block:
+    - name: UFW default deny incoming
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: UFW default allow outgoing
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: UFW allow SSH from local network
+      ufw:
+        rule: allow
+        from_ip: "{{ lan_subnet | default('192.168.1.0/24') }}"
+        port: "22"
+        proto: tcp
+
+    - name: UFW allow Tailscale interface
+      ufw:
+        rule: allow
+        interface: tailscale0
+        direction: in
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+
+- name: Configure firewalld (dnf systems)
+  when: pkg_manager == "dnf"
+  block:
+    - name: Start firewalld
+      systemd:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Allow SSH
+      firewalld:
+        service: ssh
+        permanent: true
+        state: enabled
+
+    - name: Allow Tailscale interface
+      firewalld:
+        interface: tailscale0
+        zone: trusted
+        permanent: true
+        state: enabled
+
+    - name: Reload firewalld
+      command: firewall-cmd --reload
+
+- name: Create data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - "{{ data_dir }}"
+    - "{{ data_dir }}/caddy"
+    - "{{ data_dir }}/authelia"
+    - "{{ data_dir }}/gitea/data"
+    - "{{ data_dir }}/gitea/config"
+    - "{{ data_dir }}/immich/upload"
+    - "{{ data_dir }}/immich/postgres"
+    - "{{ data_dir }}/grafana/data"
+    - "{{ data_dir }}/searxng/config"
+    - "{{ data_dir }}/ollama/models"
+    - "{{ data_dir }}/monitoring"
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone | default('America/Los_Angeles') }}"

@@ -1,0 +1,20 @@
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    environment:
+      - SEARXNG_BASE_URL=https://search.${DOMAIN}
+      - INSTANCE_NAME=Sovereign Search
+    volumes:
+      - searxng-config:/etc/searxng:rw
+    ports:
+      - "127.0.0.1:${SEARXNG_PORT:-8095}:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  searxng-config:
