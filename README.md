@@ -1,7 +1,7 @@
 <div align="center">
   <img src="logo.svg" width="96" height="96" alt="Helm Suite logo" />
   <h1>Helm Suite</h1>
-  <p><strong>Local-first personal ops stack -- SaaS replacement blueprint</strong></p>
+  <p><strong>Personal cloud infrastructure suite — bootstrap your own private homelab with a NAS, Tailscale, and security best practices</strong></p>
   <p>
     <a href="https://tannner.com">tannner.com</a> ·
     <a href="https://github.com/tannernicol/helm-suite">GitHub</a>
@@ -10,34 +10,81 @@
 
 ---
 
+<p align="center">
+  <img src="docs/demo.png" alt="Helm Suite demo" width="700" />
+</p>
+
 ## What it does
 
-Helm Suite is a reference blueprint for consolidating personal workflows -- finance, notes, research -- into private, self-hosted tools with zero data sprawl. It documents the architecture, integration patterns, and security boundaries needed to replace common SaaS tools with a unified, local-first stack you fully control.
+[Helm](https://thehelm.com) (RIP) was ahead of its time. To complete the healing process for this startup closing, I built out the whole vision using a NAS, Tailscale, and security best practices. With the assist of agentic coding, building your own personal, private, fast internet is completely feasible.
 
-## Key features
+This repo walks you through setting up and bootstrapping your own homelab — from zero to a personal dashboard with apps you own, running on hardware you control.
 
-- Privacy-first architecture with explicit data boundaries
-- Explicit trust boundaries between all components
-- Integrated finance, notes, and research tools
-- Security-first defaults with least-privilege access
+## What you'll end up with
 
-## Stack
+- **Reverse proxy** (Caddy) with automatic HTTPS on your own domain
+- **Photo library** (Immich) — Google Photos replacement, fully private
+- **Finance dashboard** — track accounts, spending, net worth
+- **AI stack** (Ollama) — local LLMs, no cloud dependency
+- **Secure networking** (Tailscale) — access everything from anywhere, zero public exposure
+- **Auth gateway** (Authelia) — SSO for all your services
+- **Automated backups** to NAS with versioned snapshots
 
-- Python
-- FastAPI
-- SQLite
-
-## Getting started
+## Quick start
 
 ```bash
 git clone https://github.com/tannernicol/helm-suite.git
 cd helm-suite
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python scripts/demo.py --config config/example.yaml
+
+# 1. Configure your environment
+cp .env.example .env && vim .env
+
+# 2. Bootstrap everything
+./bootstrap.sh
 ```
+
+```
+$ ./bootstrap.sh
+→ caddy ✓  immich ✓  monarch ✓  ollama ✓
+→ All services on Tailscale. Zero public exposure.
+```
+
+## Prerequisites
+
+- A NAS or always-on machine (Synology, Unraid, old PC, etc.)
+- [Tailscale](https://tailscale.com) account (free tier works)
+- A domain name (optional but recommended)
+
+## Architecture
+
+```
+                    Internet
+                       |
+                   Tailscale
+                       |
+              +--------+--------+
+              |   Caddy (TLS)   |
+              +--------+--------+
+                       |
+         +------+------+------+------+
+         |      |      |      |      |
+       Immich  Money  Ollama  Your
+       Photos  App    AI      Apps
+         |      |      |      |
+         +------+------+------+------+
+                       |
+                   SQLite / NAS
+```
+
+## Stack
+
+- **Caddy** — reverse proxy + automatic TLS
+- **Tailscale** — zero-config VPN mesh
+- **Authelia** — SSO + 2FA
+- **Python / FastAPI / SQLite** — for custom apps
+- **Systemd** — service management
+- **NAS** — storage + backups
 
 ## Author
 
-**Tanner Nicol** — Principal Security Infrastructure Engineer
-[tannner.com](https://tannner.com) · [GitHub](https://github.com/tannernicol) · [LinkedIn](https://linkedin.com/in/tanner-nicol-60b21126)
+**Tanner Nicol** — [tannner.com](https://tannner.com) · [GitHub](https://github.com/tannernicol) · [LinkedIn](https://linkedin.com/in/tanner-nicol-60b21126)
