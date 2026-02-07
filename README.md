@@ -15,14 +15,18 @@
 ---
 
 <p align="center">
-  <img src="docs/demo.png" alt="Helm Suite demo" width="700" />
+  <img src="docs/dashboard.svg" alt="Helm Suite infrastructure dashboard" width="700" />
 </p>
 
-## What it does
+## The Problem
 
-[Helm](https://thehelm.com) (RIP) was ahead of its time. To complete the healing process for this startup closing, I built out the whole vision using a NAS, Tailscale, and security best practices. With the assist of agentic coding, building your own personal, private, fast internet is completely feasible.
+Your photos live on Google's servers. Your finances flow through Mint's APIs. Your AI assistant phones home to OpenAI. You own none of it, control none of it, and when any of these companies pivot, get acquired, or shut down — you start over.
 
-This repo walks you through setting up and bootstrapping your own homelab — from zero to a personal dashboard with apps you own, running on hardware you control.
+## The Solution
+
+[Helm](https://thehelm.com) (RIP) was ahead of its time — a personal server that gave you ownership of your digital life. When the startup closed, I built the whole vision myself: a NAS, Tailscale, and security best practices. Photos, finance, AI, auth — all running on hardware I control, accessible from anywhere, exposed to nobody.
+
+**This repo is the complete blueprint. From zero to a private personal cloud in one bootstrap.**
 
 ## What you'll end up with
 
