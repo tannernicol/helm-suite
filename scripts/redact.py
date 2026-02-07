@@ -19,6 +19,8 @@ ALLOWLIST_DOMAINS = {
     "ollama.ai",
     "docs.docker.com",
     "pytest.org",
+    "python.org",
+    "img.shields.io",
 }
 
 ALLOWLIST_IPS = {
