@@ -8,10 +8,21 @@ ALLOWLIST_DOMAINS = {
     "shields.io",
     "example.com",
     "example.internal",
+    "tannner.com",
+    "thehelm.com",
+    "tailscale.com",
+    "gmail.com",
+    "linkedin.com",
+    "contributor-covenant.org",
+    "docker.com",
+    "caddyserver.com",
+    "ollama.ai",
+    "docs.docker.com",
 }
 
 ALLOWLIST_IPS = {
     "10.0.0.0",
+    "127.0.0.1",
 }
 
 PATTERNS = [

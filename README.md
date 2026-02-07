@@ -45,8 +45,17 @@ cp .env.example .env && vim .env
 
 ```
 $ ./bootstrap.sh
-→ caddy ✓  immich ✓  monarch ✓  ollama ✓
-→ All services on Tailscale. Zero public exposure.
+Helm Suite Bootstrap
+========================================
+
+Checking prerequisites
+  docker ✓
+  caddy ✓
+  tailscale ✓
+  ollama ✓
+  python3 ✓
+
+Bootstrap complete.
 ```
 
 ## Prerequisites
