@@ -1,7 +1,23 @@
+# Environment & secrets
 .env
+*.key
+*.pem
+*.crt
+credentials/
+
+# Data
 *.db
+
+# Python
 __pycache__/
 .venv/
 *.pyc
+.pytest_cache/
+
+# OS
 .DS_Store
 node_modules/
+
+# Backups
+*.bak
+*.swp
