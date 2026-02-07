@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# HelmV2 CLI -- Manage and monitor your homelab services
+# Helm Suite CLI -- Manage and monitor your homelab services
 #
 # Usage:
 #     homelab status          Show status of all services
@@ -67,7 +67,7 @@ check_url() {
 # -- Commands -----------------------------------------------------------------
 cmd_status() {
     load_env
-    echo -e "\n${BOLD}HELMV2 STATUS${NC}"
+    echo -e "\n${BOLD}HELM SUITE STATUS${NC}"
     echo "$(printf '=%.0s' {1..55})"
 
     echo -e "\n${CYAN}Infrastructure${NC}"
@@ -271,7 +271,7 @@ cmd_restart() {
 }
 
 cmd_help() {
-    echo "HelmV2 CLI"
+    echo "Helm Suite CLI"
     echo ""
     echo "Usage: homelab <command> [args]"
     echo ""

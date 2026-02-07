@@ -1,6 +1,6 @@
 # Family-Safe Networking
 
-How to set up your HelmV2 for family use with DNS filtering,
+How to set up your Helm Suite for family use with DNS filtering,
 parental controls, and easy access for non-technical family members.
 
 ## DNS Filtering with Blocky or Pi-hole
@@ -46,7 +46,7 @@ volumes:
 
 ## Network-Level Configuration
 
-Set your router's DNS to point to the HelmV2 server:
+Set your router's DNS to point to the Helm Suite server:
 
 1. Access router admin (usually 192.168.1.1)
 2. Set primary DNS to your server's local IP (e.g., 192.168.1.10)

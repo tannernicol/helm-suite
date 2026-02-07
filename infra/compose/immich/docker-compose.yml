@@ -5,7 +5,7 @@ services:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
     volumes:
-      - ${IMMICH_UPLOAD_LOCATION:-/srv/helmv2/immich/upload}:/usr/src/app/upload
+      - ${IMMICH_UPLOAD_LOCATION:-/srv/helm-suite/immich/upload}:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
     environment:
       - DB_HOSTNAME=database
@@ -75,7 +75,7 @@ services:
       - POSTGRES_DB=${IMMICH_DB_NAME:-immich}
       - POSTGRES_INITDB_ARGS=--data-checksums
     volumes:
-      - ${IMMICH_DB_DATA_LOCATION:-/srv/helmv2/immich/postgres}:/var/lib/postgresql/data
+      - ${IMMICH_DB_DATA_LOCATION:-/srv/helm-suite/immich/postgres}:/var/lib/postgresql/data
     restart: unless-stopped
     command: >
       postgres

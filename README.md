@@ -1,4 +1,4 @@
-# HelmV2
+# Helm Suite
 
 **Replace 5 SaaS products with one Linux box and a Tailscale account.**
 
@@ -8,9 +8,9 @@
 
 In 2019, [The Helm](https://www.theverge.com/2019/11/21/20975649/time-best-inventions-2019-list) was named a TIME Best Invention -- a personal server that kept your data in your home. They ran out of funding. The mission didn't.
 
-HelmV2 is a complete blueprint for replacing cloud services with self-hosted infrastructure on hardware you control. Everything runs behind Tailscale with **zero public exposure** -- your services are reachable from your devices, invisible to the rest of the internet.
+Helm Suite is a complete blueprint for replacing cloud services with self-hosted infrastructure on hardware you control. Everything runs behind Tailscale with **zero public exposure** -- your services are reachable from your devices, invisible to the rest of the internet.
 
-| You're paying for | HelmV2 replaces it with | Cost |
+| You're paying for | Helm Suite replaces it with | Cost |
 |---|---|---|
 | Google Photos ($30/yr) | **Immich** -- face recognition, maps, ML search | Free |
 | GitHub Pro ($48/yr) | **Gitea** -- unlimited private repos, CI runners | Free |
@@ -22,7 +22,7 @@ HelmV2 is a complete blueprint for replacing cloud services with self-hosted inf
 
 ## What Makes It Different
 
-Most self-hosting guides show you how to run one container. HelmV2 gives you the whole stack:
+Most self-hosting guides show you how to run one container. Helm Suite gives you the whole stack:
 
 - **Zero public exposure** -- Everything binds to your Tailscale IP. Nothing on the public internet, ever.
 - **Single config** -- One `.env` file generates Caddy routes, Authelia policies, Docker Compose configs, and systemd services.
@@ -36,7 +36,7 @@ Most self-hosting guides show you how to run one container. HelmV2 gives you the
 ```
 $ ./scripts/homelab status
 
-HELMV2 STATUS
+HELM SUITE STATUS
 =======================================================
 
 Infrastructure
@@ -77,6 +77,12 @@ $ ./scripts/security-audit
 3. Port Bindings
   [PASS] No unexpected 0.0.0.0 bindings
 
+4. Docker Security
+  [PASS] No privileged containers
+
+5. Firewall Rules
+  [PASS] Tailscale-scoped only
+
 6. Cloudflare Tunnels
   [PASS] No Cloudflare tunnels running
 
@@ -110,8 +116,8 @@ public internet.
 
 ```bash
 # 1. Clone
-git clone https://github.com/tannernicol/helmv2.git
-cd helmv2
+git clone https://github.com/tannernicol/helm-suite.git
+cd helm-suite
 
 # 2. Configure
 cp .env.example .env
@@ -140,7 +146,7 @@ See [docs/QUICKSTART.md](docs/QUICKSTART.md) for the full walkthrough (30 minute
 ## Project Structure
 
 ```
-helmv2/
+helm-suite/
   .env.example              # All configurable variables
   setup.sh                  # Interactive bootstrap
   docs/                     # Architecture, security, guides
@@ -165,7 +171,7 @@ helmv2/
 
 ## MCP Servers
 
-HelmV2 includes 3 MCP servers so your LLM tools can interact with your infrastructure:
+Helm Suite includes 3 MCP servers so your LLM tools can interact with your infrastructure:
 
 | Server | What it does |
 |--------|-------------|

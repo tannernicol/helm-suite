@@ -2,7 +2,7 @@
 
 ## Overview
 
-HelmV2 runs on a single Linux machine with an optional NAS for storage.
+Helm Suite runs on a single Linux machine with an optional NAS for storage.
 All services are accessed through Tailscale VPN -- nothing is exposed to the
 public internet.
 
@@ -111,7 +111,7 @@ Each MCP server:
 ## Directory Layout
 
 ```
-/srv/helmv2/           # Runtime data
+/srv/helm-suite/           # Runtime data
   caddy/Caddyfile               # Generated Caddy config
   authelia/configuration.yml    # Generated Authelia config
   .env                          # Generated shared env

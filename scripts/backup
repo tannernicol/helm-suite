@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# HelmV2 Backup
+# Helm Suite Backup
 # Backs up service data to NAS or local backup directory.
 #
 # Usage:
@@ -33,11 +33,11 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 BACKUP_DIR="${BACKUP_DIR:-/mnt/nas/Backups}"
-BACKUP_DEST="${BACKUP_DIR}/helmv2"
+BACKUP_DEST="${BACKUP_DIR}/helm-suite"
 DATE=$(date +%Y-%m-%d)
 BACKUP_PATH="${BACKUP_DEST}/${DATE}"
 
-echo -e "${BOLD}HelmV2 Backup${NC}"
+echo -e "${BOLD}Helm Suite Backup${NC}"
 echo "$(printf '=%.0s' {1..40})"
 echo "Destination: ${BACKUP_PATH}"
 echo ""
@@ -96,17 +96,17 @@ backup_file() {
 # -- Backup service data -------------------------------------------------------
 echo -e "\n${BOLD}Service Data${NC}"
 
-backup_dir "/srv/helmv2/gitea/data" "gitea-data"
-backup_dir "/srv/helmv2/gitea/config" "gitea-config"
-backup_dir "/srv/helmv2/authelia" "authelia"
-backup_dir "/srv/helmv2/grafana/data" "grafana-data"
-backup_dir "/srv/helmv2/searxng/config" "searxng-config"
+backup_dir "/srv/helm-suite/gitea/data" "gitea-data"
+backup_dir "/srv/helm-suite/gitea/config" "gitea-config"
+backup_dir "/srv/helm-suite/authelia" "authelia"
+backup_dir "/srv/helm-suite/grafana/data" "grafana-data"
+backup_dir "/srv/helm-suite/searxng/config" "searxng-config"
 
 # -- Backup configs ------------------------------------------------------------
 echo -e "\n${BOLD}Configuration${NC}"
 
-backup_file "/srv/helmv2/caddy/Caddyfile" "Caddyfile"
-backup_file "/srv/helmv2/.env" "env-backup"
+backup_file "/srv/helm-suite/caddy/Caddyfile" "Caddyfile"
+backup_file "/srv/helm-suite/.env" "env-backup"
 
 # -- Backup Docker volumes (databases) ----------------------------------------
 echo -e "\n${BOLD}Docker Volumes (database dumps)${NC}"

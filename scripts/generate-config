@@ -3,7 +3,7 @@ set -euo pipefail
 
 # =============================================================================
 # Generate configs from .env
-# Runs envsubst on all .template files and writes output to /srv/helmv2
+# Runs envsubst on all .template files and writes output to /srv/helm-suite
 #
 # Usage:
 #     generate-config                 Generate all configs
@@ -70,7 +70,7 @@ fi
 # Generate configs
 echo -e "\n${BOLD}Generating configs${NC}"
 
-OUTPUT_DIR="/srv/helmv2"
+OUTPUT_DIR="/srv/helm-suite"
 mkdir -p "$OUTPUT_DIR/caddy" "$OUTPUT_DIR/authelia"
 
 # Caddyfile

@@ -49,8 +49,8 @@ This routes all subdomains to your server via Tailscale.
 ## Step 4: Clone and Configure (5 minutes)
 
 ```bash
-git clone https://github.com/tannernicol/helmv2.git
-cd helmv2
+git clone https://github.com/tannernicol/helm-suite.git
+cd helm-suite
 
 cp .env.example .env
 ```
@@ -103,7 +103,7 @@ cd infra/compose/searxng && docker compose up -d && cd -
 cd infra/compose/monitoring && docker compose up -d && cd -
 
 # Authelia (SSO)
-cd infra/compose/authelia && docker compose up -d && cd -
+cd infra/authelia && docker compose up -d && cd -
 ```
 
 Install and start Caddy:
@@ -173,7 +173,7 @@ systemctl --user enable --now sovereign-backup.timer
 
 ### Caddy won't start
 
-1. Check the config: `caddy validate --config /srv/helmv2/caddy/Caddyfile`
+1. Check the config: `caddy validate --config /srv/helm-suite/caddy/Caddyfile`
 2. Check port conflicts: `ss -tlnp | grep ':443'`
 
 ### Docker containers won't start

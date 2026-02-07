@@ -83,7 +83,7 @@ curl -k https://myservice.yourdomain.com/health
 Add the service data path to `scripts/backup`:
 
 ```bash
-backup_dir "/srv/helmv2/myservice" "myservice"
+backup_dir "/srv/helm-suite/myservice" "myservice"
 ```
 
 ## Tips

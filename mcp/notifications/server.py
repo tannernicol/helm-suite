@@ -39,9 +39,9 @@ except ImportError:
 
 
 # ---- Configuration ----------------------------------------------------------
-NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "helmv2-alerts")
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "helm-suite-alerts")
 NOTIFY_LOG = (
-    Path.home() / ".config" / "helmv2" / "notifications.jsonl"
+    Path.home() / ".config" / "helm-suite" / "notifications.jsonl"
 )
 
 # ---- Server -----------------------------------------------------------------
@@ -139,7 +139,7 @@ async def _send_desktop(
     """Send a desktop notification via notify-send."""
     try:
         subprocess.run(
-            ["notify-send", "-u", urgency, "-a", "HelmV2", title, message],
+            ["notify-send", "-u", urgency, "-a", "Helm Suite", title, message],
             timeout=5,
             check=False,
         )

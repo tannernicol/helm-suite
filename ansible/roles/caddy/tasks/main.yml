@@ -53,14 +53,14 @@
 - name: Generate Caddyfile from template
   shell: |
     set -a
-    source {{ helmv2_dir }}/.env
+    source {{ helm_suite_dir }}/.env
     set +a
-    envsubst < {{ helmv2_dir }}/infra/caddy/Caddyfile.template > {{ data_dir }}/caddy/Caddyfile
+    envsubst < {{ helm_suite_dir }}/infra/caddy/Caddyfile.template > {{ data_dir }}/caddy/Caddyfile
   args:
     creates: "{{ data_dir }}/caddy/Caddyfile"
   become_user: "{{ username }}"
 
-- name: Install HelmV2 Caddy service
+- name: Install Helm Suite Caddy service
   template:
     src: caddy.service.j2
     dest: /etc/systemd/system/caddy-sovereign.service

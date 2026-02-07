@@ -1,5 +1,5 @@
 ---
-# HelmV2 Bootstrap Playbook
+# Helm Suite Bootstrap Playbook
 # Bootstraps a fresh Linux machine with all infrastructure.
 #
 # Usage:
@@ -12,7 +12,7 @@
 #   gpu_enabled: true
 #   username: youruser
 
-- name: Bootstrap HelmV2
+- name: Bootstrap Helm Suite
   hosts: all
   become: true
   vars:
@@ -20,8 +20,8 @@
     username: "{{ lookup('env', 'USERNAME') | default('user', true) }}"
     gpu_enabled: "{{ lookup('env', 'GPU_ENABLED') | default('false', true) }}"
     tailscale_authkey: "{{ lookup('env', 'TAILSCALE_AUTHKEY') | default('', true) }}"
-    helmv2_dir: "/home/{{ username }}/helmv2"
-    data_dir: "/srv/helmv2"
+    helm_suite_dir: "/home/{{ username }}/helm-suite"
+    data_dir: "/srv/helm-suite"
 
   roles:
     - base

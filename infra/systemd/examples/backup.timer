@@ -5,7 +5,7 @@
 #          systemctl --user enable --now backup.timer
 
 [Unit]
-Description=Daily HelmV2 backup
+Description=Daily Helm Suite backup
 
 [Timer]
 OnCalendar=daily

@@ -2,7 +2,7 @@
 
 ## Core Principle: Zero Public Exposure
 
-Nothing in HelmV2 is reachable from the public internet. Every service
+Nothing in Helm Suite is reachable from the public internet. Every service
 is accessible only through Tailscale VPN.
 
 ## Defense Layers
@@ -81,7 +81,7 @@ sudo ufw enable
 
 ## Secrets Management
 
-HelmV2 does not store secrets in plaintext config files. Recommended
+Helm Suite does not store secrets in plaintext config files. Recommended
 approaches:
 
 1. **Environment variables** -- Loaded from `.env` (not committed to git)

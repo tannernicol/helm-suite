@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# HelmV2 Security Audit
+# Helm Suite Security Audit
 # Checks that nothing is publicly exposed. Everything should be Tailscale-only.
 #
 # Usage:
@@ -125,7 +125,6 @@ header "4. Docker Port Bindings"
 
 if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
     while IFS= read -r container; do
-        local name ports
         name=$(echo "$container" | awk '{print $NF}')
         ports=$(docker port "$name" 2>/dev/null || echo "none")
 

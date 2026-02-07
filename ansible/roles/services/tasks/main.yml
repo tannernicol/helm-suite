@@ -13,7 +13,7 @@
 - name: Create shared .env for compose files
   shell: |
     set -a
-    source {{ helmv2_dir }}/.env
+    source {{ helm_suite_dir }}/.env
     set +a
     cat > {{ data_dir }}/.env << ENVEOF
     DOMAIN=${DOMAIN}
@@ -31,9 +31,9 @@
     IMMICH_DB_USERNAME=${IMMICH_DB_USERNAME:-immich}
     IMMICH_DB_PASSWORD=${IMMICH_DB_PASSWORD}
     IMMICH_DB_NAME=${IMMICH_DB_NAME:-immich}
-    IMMICH_UPLOAD_LOCATION=${IMMICH_UPLOAD_LOCATION:-/srv/helmv2/immich/upload}
-    IMMICH_DB_DATA_LOCATION=${IMMICH_DB_DATA_LOCATION:-/srv/helmv2/immich/postgres}
-    NTFY_TOPIC=${NTFY_TOPIC:-helmv2-alerts}
+    IMMICH_UPLOAD_LOCATION=${IMMICH_UPLOAD_LOCATION:-/srv/helm-suite/immich/upload}
+    IMMICH_DB_DATA_LOCATION=${IMMICH_DB_DATA_LOCATION:-/srv/helm-suite/immich/postgres}
+    NTFY_TOPIC=${NTFY_TOPIC:-helm-suite-alerts}
     AUTHELIA_JWT_SECRET=${AUTHELIA_JWT_SECRET}
     AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
     AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_STORAGE_ENCRYPTION_KEY}
@@ -42,35 +42,35 @@
 
 - name: Start Authelia
   shell: |
-    cd {{ helmv2_dir }}/infra/compose/../../infra/authelia
+    cd {{ helm_suite_dir }}/infra/compose/../../infra/authelia
     docker compose --env-file {{ data_dir }}/.env up -d
   become_user: "{{ username }}"
   ignore_errors: true
 
 - name: Start Gitea
   shell: |
-    cd {{ helmv2_dir }}/infra/compose/gitea
+    cd {{ helm_suite_dir }}/infra/compose/gitea
     docker compose --env-file {{ data_dir }}/.env up -d
   become_user: "{{ username }}"
   ignore_errors: true
 
 - name: Start SearxNG
   shell: |
-    cd {{ helmv2_dir }}/infra/compose/searxng
+    cd {{ helm_suite_dir }}/infra/compose/searxng
     docker compose --env-file {{ data_dir }}/.env up -d
   become_user: "{{ username }}"
   ignore_errors: true
 
 - name: Start Monitoring
   shell: |
-    cd {{ helmv2_dir }}/infra/compose/monitoring
+    cd {{ helm_suite_dir }}/infra/compose/monitoring
     docker compose --env-file {{ data_dir }}/.env up -d
   become_user: "{{ username }}"
   ignore_errors: true
 
 - name: Start Ollama (GPU)
   shell: |
-    cd {{ helmv2_dir }}/infra/compose/ollama
+    cd {{ helm_suite_dir }}/infra/compose/ollama
     docker compose --env-file {{ data_dir }}/.env up -d
   become_user: "{{ username }}"
   when: gpu_enabled | bool
@@ -78,7 +78,7 @@
 
 - name: Start Immich (GPU)
   shell: |
-    cd {{ helmv2_dir }}/infra/compose/immich
+    cd {{ helm_suite_dir }}/infra/compose/immich
     docker compose --env-file {{ data_dir }}/.env up -d
   become_user: "{{ username }}"
   when: gpu_enabled | bool
@@ -88,11 +88,11 @@
   copy:
     content: |
       [Unit]
-      Description=HelmV2 Backup
+      Description=Helm Suite Backup
 
       [Service]
       Type=oneshot
-      ExecStart={{ helmv2_dir }}/scripts/backup
+      ExecStart={{ helm_suite_dir }}/scripts/backup
       Nice=15
       IOSchedulingClass=idle
     dest: "/home/{{ username }}/.config/systemd/user/sovereign-backup.service"
@@ -103,7 +103,7 @@
   copy:
     content: |
       [Unit]
-      Description=Daily HelmV2 backup
+      Description=Daily Helm Suite backup
 
       [Timer]
       OnCalendar=daily
@@ -126,8 +126,8 @@
 - name: Show completion message
   debug:
     msg: |
-      HelmV2 deployment complete!
+      Helm Suite deployment complete!
 
       Start Caddy: sudo systemctl start caddy-sovereign
-      Check status: {{ helmv2_dir }}/scripts/homelab status
-      Security audit: {{ helmv2_dir }}/scripts/security-audit
+      Check status: {{ helm_suite_dir }}/scripts/homelab status
+      Security audit: {{ helm_suite_dir }}/scripts/security-audit

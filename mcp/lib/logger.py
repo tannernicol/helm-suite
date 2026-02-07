@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-LOG_FILE = Path.home() / ".config" / "helmv2" / "mcp-usage.jsonl"
+LOG_FILE = Path.home() / ".config" / "helm-suite" / "mcp-usage.jsonl"
 
 
 def log_call(
