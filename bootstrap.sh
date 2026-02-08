@@ -53,7 +53,7 @@ echo "  Backup dir: ${BACKUP_DIR:-not set}"
 # -- Create directory structure ------------------------------------------------
 echo -e "\n${BOLD}Creating directories${NC}"
 DATA="${DATA_DIR:-/srv/helm-suite}"
-for dir in caddy authelia immich grafana searxng; do
+for dir in caddy authelia immich ollama; do
     mkdir -p "${DATA}/${dir}"
     echo "  ${DATA}/${dir} ✓"
 done

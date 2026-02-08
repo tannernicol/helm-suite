@@ -109,12 +109,12 @@
   <text x="60" y="462" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#e6edf3">Architecture</text>
 
   <!-- Devices -->
-  <rect x="60" y="478" width="80" height="36" rx="6" fill="#1f6feb" opacity="0.1" stroke="#1f6feb" stroke-width="0.5"/>
-  <text x="76" y="500" font-family="system-ui, sans-serif" font-size="9" fill="#58a6ff">Desktop</text>
-  <rect x="60" y="522" width="80" height="36" rx="6" fill="#1f6feb" opacity="0.1" stroke="#1f6feb" stroke-width="0.5"/>
-  <text x="80" y="544" font-family="system-ui, sans-serif" font-size="9" fill="#58a6ff">Phone</text>
-  <rect x="60" y="548" width="80" height="36" rx="6" fill="#1f6feb" opacity="0.1" stroke="#1f6feb" stroke-width="0.5"/>
-  <text x="76" y="570" font-family="system-ui, sans-serif" font-size="9" fill="#58a6ff">Laptop</text>
+  <rect x="60" y="478" width="80" height="28" rx="6" fill="#1f6feb" opacity="0.1" stroke="#1f6feb" stroke-width="0.5"/>
+  <text x="76" y="496" font-family="system-ui, sans-serif" font-size="9" fill="#58a6ff">Desktop</text>
+  <rect x="60" y="512" width="80" height="28" rx="6" fill="#1f6feb" opacity="0.1" stroke="#1f6feb" stroke-width="0.5"/>
+  <text x="82" y="530" font-family="system-ui, sans-serif" font-size="9" fill="#58a6ff">Phone</text>
+  <rect x="60" y="546" width="80" height="28" rx="6" fill="#1f6feb" opacity="0.1" stroke="#1f6feb" stroke-width="0.5"/>
+  <text x="76" y="564" font-family="system-ui, sans-serif" font-size="9" fill="#58a6ff">Laptop</text>
 
   <!-- Arrow to Tailscale -->
   <line x1="150" y1="516" x2="200" y2="516" stroke="#30363d" stroke-width="1"/>
