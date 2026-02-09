@@ -20,6 +20,18 @@ Helm Suite is a complete blueprint for replacing cloud services with self-hosted
 
 **Total saved: ~$350/yr** (plus you own your data)
 
+## Local App Replication Map
+
+| Cloud SaaS | Local module in Helm Suite | What stays private |
+|---|---|---|
+| Google Docs | Notes / local docs app pattern | Notes, docs, and personal knowledge |
+| Google Photos | Immich | Photos, metadata, ML tags |
+| Google Search | SearxNG + local search pattern | Search history and interests |
+| Mint | Money app pattern | Financial history and spending data |
+| GitHub (personal use) | Gitea | Repo history, issues, local CI metadata |
+| Cloud coding copilot | Ollama + Pip-Boy offline coding agent pattern | Prompts, code context, model outputs |
+| Cloud security scanners | Grimoire private security lab pattern | Findings, triage notes, local vuln analysis |
+
 ## What Makes It Different
 
 Most self-hosting guides show you how to run one container. Helm Suite gives you the whole stack:
@@ -28,8 +40,36 @@ Most self-hosting guides show you how to run one container. Helm Suite gives you
 - **Single config** -- One `.env` file generates Caddy routes, Authelia policies, Docker Compose configs, and systemd services.
 - **GPU-first** -- NVIDIA runtime for Ollama (local LLMs), Immich ML (face recognition, CLIP search), and custom models.
 - **MCP servers** -- 3 ready-to-use MCP servers so your LLM tools can query databases, run local inference, and send notifications.
+- **Offline coding agent ready** -- Pip-Boy pattern for local coding assistance trained from your own workflows.
+- **Private security lab ready** -- Grimoire pattern for on-prem vulnerability triage on authorized targets.
 - **Security audit built in** -- `security-audit` script checks DNS, port bindings, firewall, Docker, and Cloudflare tunnels.
 - **CLI management** -- `homelab status` shows everything at a glance.
+
+## Operational Advantages
+
+### Speed
+
+- LAN-local dashboards and APIs avoid cloud round-trips.
+- Local search and indexing reduce query latency for personal corpora.
+- Local model inference avoids hosted queue delays and API retries.
+
+### Cost
+
+- Replaces multiple recurring SaaS subscriptions with one stack.
+- Reduces paid API dependency for frequent assistant workflows.
+- Eliminates recurring migration/export costs between providers.
+
+### Security
+
+- Zero-public-ingress architecture by default (Tailscale-scoped).
+- SSO + policy boundaries through Authelia.
+- Local backups and snapshots reduce vendor and outage risk.
+
+### Privacy
+
+- Photos, notes, finance, search, and model interactions stay on your hardware.
+- No forced telemetry to external SaaS providers for core workflows.
+- Retention and deletion policies are fully under your control.
 
 ## How It Looks
 
@@ -208,6 +248,20 @@ This is a working blueprint extracted from a production homelab. It runs 24/7 an
 - [ ] Multi-node setup documentation
 - [ ] Kubernetes migration path
 - [ ] Monitoring/alerting runbook
+
+## Public Hygiene
+
+Before publishing examples, logs, or screenshots:
+
+```bash
+python scripts/redact.py --self-check
+```
+
+Reference:
+
+- [Security Policy](SECURITY.md)
+- [Public Scope](docs/public-scope.md)
+- [Redaction Policy](docs/redaction-policy.md)
 
 ## Contributing
 
