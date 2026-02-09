@@ -38,5 +38,9 @@ jobs:
         run: |
           bash -n bootstrap.sh
           bash -n scripts/render_demo.sh
+      - name: Generate synthetic benchmarks
+        run: |
+          python scripts/benchmark_synthetic.py --format markdown --output /tmp/bench.md
+          python scripts/benchmark_synthetic.py --format json --output /tmp/bench.json
       - name: Redaction check
         run: python scripts/redact.py --self-check

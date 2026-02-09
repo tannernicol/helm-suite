@@ -11,6 +11,10 @@
 [![Shell](https://img.shields.io/badge/shell-bash-blue.svg)](setup.sh)
 [![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](infra/compose/)
 
+<p align="center">
+  <img src="docs/demo.gif" alt="Helm Suite synthetic 60-second demo" width="700" />
+</p>
+
 In 2019, [The Helm](https://www.theverge.com/2019/11/21/20975649/time-best-inventions-2019-list) was named a TIME Best Invention -- a personal server that kept your data in your home. They ran out of funding. The mission didn't.
 
 Helm Suite is a complete blueprint for replacing cloud services with self-hosted infrastructure on hardware you control. Everything runs behind Tailscale with **zero public exposure** -- your services are reachable from your devices, invisible to the rest of the internet.
@@ -32,6 +36,18 @@ Helm Suite is a complete blueprint for replacing cloud services with self-hosted
 - Built-in security audit and policy-gated access patterns
 - Local coding-agent and private security-lab reference architecture
 - CI + redaction checks to keep public docs safe and clean
+
+## When to Use
+
+- Private self-hosting with strong security and operations guardrails
+- Teams replacing multiple SaaS tools with one maintainable stack
+- Environments where on-prem latency and privacy are priorities
+
+## When Not to Use
+
+- Fully managed-cloud orgs with no appetite for infrastructure ownership
+- Teams without Linux or Docker operational capacity
+- Workloads requiring global multi-region managed control planes
 
 ## Local App Replication Map
 
@@ -83,6 +99,18 @@ Most self-hosting guides show you how to run one container. Helm Suite gives you
 - Photos, notes, finance, search, and model interactions stay on your hardware.
 - No forced telemetry to external SaaS providers for core workflows.
 - Retention and deletion policies are fully under your control.
+
+## Synthetic Benchmarks
+
+```bash
+python scripts/benchmark_synthetic.py --format markdown
+python scripts/benchmark_synthetic.py --format json --output docs/benchmarks.synthetic.json
+```
+
+Reference:
+
+- `docs/benchmarks.md`
+- `docs/benchmarks.synthetic.md`
 
 ## How It Looks
 
@@ -195,6 +223,13 @@ See [docs/QUICKSTART.md](docs/QUICKSTART.md) for the full walkthrough (30 minute
 - [Quick Start](docs/QUICKSTART.md) -- Get running in 30 minutes
 - [GPU Setup](docs/GPU.md) -- GPU passthrough for local AI
 - [MCP Servers](docs/MCP.md) -- Give your LLMs access to your infrastructure
+- [Sanitized Workflow Example](examples/sanitized_workflow.md) -- Public-safe walkthrough
+- [Threat Model](docs/threat-model.md) -- Scope, trust boundaries, and controls
+- [Production Hardening Checklist](docs/hardening-checklist.md) -- Deployment guardrails
+- [Release Policy](docs/release-policy.md) -- Cadence and changelog discipline
+- [Changelog](CHANGELOG.md) -- Release notes and history
+- [Good First Issues](docs/good-first-issues.md) -- Contributor starter tasks
+- [Cross-Repo Stack Demo](docs/stack-demo.md) -- How these projects fit together
 
 ## Project Structure
 
@@ -284,6 +319,10 @@ Reference:
 - [Public Scope](docs/public-scope.md)
 - [Redaction Policy](docs/redaction-policy.md)
 - `scripts/configure_branch_protection.sh tannernicol/helm-suite main`
+
+## Related Repos
+
+- [Open Source Portfolio Index](docs/portfolio-index.md)
 
 ## Contributing
 

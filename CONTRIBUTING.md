@@ -25,3 +25,8 @@ bash -n scripts/security-audit
 - Preserve private-by-default architecture assumptions.
 - Redact all screenshots/logs/config snippets.
 - Never include secrets, tokens, private IPs, or internal domains.
+
+## Starter Tasks
+
+- See docs/good-first-issues.md for contributor-friendly tasks with acceptance criteria.
+- Follow docs/release-policy.md when preparing release-impacting changes.
