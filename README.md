@@ -37,6 +37,13 @@ Helm Suite is a complete blueprint for replacing cloud services with self-hosted
 - Local coding-agent and private security-lab reference architecture
 - CI + redaction checks to keep public docs safe and clean
 
+## Engineering Signal (Employer Skim)
+
+- Designs full-stack private infrastructure with clear security boundaries
+- Automates operations and validation (health, audit, CI, policy checks)
+- Demonstrates cost/performance tradeoff thinking with reproducible artifacts
+- Documents production hardening, release discipline, and incident readiness
+
 ## When to Use
 
 - Private self-hosting with strong security and operations guardrails
