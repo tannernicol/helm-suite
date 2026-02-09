@@ -2,24 +2,45 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install deps
-        run: pip install -r requirements.txt pytest
-      - name: Run tests
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+      - name: Run repository tests
         run: python -m pytest tests/ -v
-      - name: Run demo harness
-        run: python scripts/demo.py --config config/example.yaml
+      - name: Shell syntax checks
+        run: |
+          bash -n bootstrap.sh
+          bash -n scripts/render_demo.sh
+      - name: Generate synthetic benchmarks
+        run: |
+          python scripts/benchmark_synthetic.py --format markdown --output /tmp/bench.md
+          python scripts/benchmark_synthetic.py --format json --output /tmp/bench.json
+      - name: Redaction check
+        run: python scripts/redact.py --self-check
