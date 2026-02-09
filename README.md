@@ -3,6 +3,8 @@
 **Replace 5 SaaS products with one Linux box and a Tailscale account.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/tannernicol/helm-suite/actions/workflows/ci.yml/badge.svg)](https://github.com/tannernicol/helm-suite/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Shell](https://img.shields.io/badge/shell-bash-blue.svg)](setup.sh)
 [![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](infra/compose/)
 
@@ -19,6 +21,14 @@ Helm Suite is a complete blueprint for replacing cloud services with self-hosted
 | 1Password/SSO ($36/yr) | **Authelia** -- single sign-on for all services | Free |
 
 **Total saved: ~$350/yr** (plus you own your data)
+
+## At a Glance
+
+- Private-by-default homelab stack with zero public ingress
+- SaaS replacement blueprint for photos, search, source control, and AI workflows
+- Built-in security audit and policy-gated access patterns
+- Local coding-agent and private security-lab reference architecture
+- CI + redaction checks to keep public docs safe and clean
 
 ## Local App Replication Map
 
