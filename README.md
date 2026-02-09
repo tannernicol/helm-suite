@@ -4,6 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/tannernicol/helm-suite/actions/workflows/ci.yml/badge.svg)](https://github.com/tannernicol/helm-suite/actions/workflows/ci.yml)
+[![Hygiene](https://github.com/tannernicol/helm-suite/actions/workflows/hygiene.yml/badge.svg)](https://github.com/tannernicol/helm-suite/actions/workflows/hygiene.yml)
+[![Security](https://github.com/tannernicol/helm-suite/actions/workflows/security.yml/badge.svg)](https://github.com/tannernicol/helm-suite/actions/workflows/security.yml)
+[![SBOM](https://github.com/tannernicol/helm-suite/actions/workflows/sbom.yml/badge.svg)](https://github.com/tannernicol/helm-suite/actions/workflows/sbom.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Shell](https://img.shields.io/badge/shell-bash-blue.svg)](setup.sh)
 [![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](infra/compose/)
@@ -259,6 +262,14 @@ This is a working blueprint extracted from a production homelab. It runs 24/7 an
 - [ ] Kubernetes migration path
 - [ ] Monitoring/alerting runbook
 
+## Engineering Quality
+
+- CI matrix on Python 3.10/3.11/3.12 plus shell syntax checks
+- Pre-commit + redaction checks on every push and PR
+- CodeQL and weekly dependency audit automation
+- SBOM artifacts generated for each PR and release tag
+- Dependabot updates for Python dependencies and Actions
+
 ## Public Hygiene
 
 Before publishing examples, logs, or screenshots:
@@ -272,6 +283,7 @@ Reference:
 - [Security Policy](SECURITY.md)
 - [Public Scope](docs/public-scope.md)
 - [Redaction Policy](docs/redaction-policy.md)
+- `scripts/configure_branch_protection.sh tannernicol/helm-suite main`
 
 ## Contributing
 
