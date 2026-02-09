@@ -1,9 +1,14 @@
 # Public Scope
 
 ## Allowed
-- High-level architecture
-- Generic config examples
-- Demo outputs with synthetic data
+
+- High-level architecture and threat model
+- Generic config templates with placeholder values
+- Synthetic CLI output and sample dashboards
+- Public dependency and setup instructions
 
 ## Not Allowed
-- Domains, IPs, credentials, or customer data
+
+- Real secrets, auth keys, or private keys
+- Real domains, hostnames, private IPs, or Tailnet details
+- Customer data, personal financial data, or proprietary internal notes
