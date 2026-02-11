@@ -39,8 +39,11 @@ class TestEnvExample:
                 value = value.strip()
                 assert value in (
                     "", "change-me", "example.com", "100.x.x.x",
-                    "/srv/helm-suite", "/mnt/nas/Backups/helm-suite",
+                    "/srv/helm-suite", "/srv/helm-suite/photos",
+                    "/mnt/nas/Backups/helm-suite",
                     "http://127.0.0.1:11434",
+                    "America/Los_Angeles",
+                    "postgres", "immich",
                 ), f"Suspicious value in .env.example: {value}"
 
 
