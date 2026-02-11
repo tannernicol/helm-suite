@@ -19,7 +19,7 @@
 		reverse_proxy authelia:9091
 	}
 
-	# Forward auth snippet — all protected routes use this
+	# Forward auth — all protected routes below use this
 	@protected {
 		not path /authelia/*
 		not path /api/*
@@ -32,28 +32,31 @@
 		}
 	}
 
+	# handle_path strips the prefix before forwarding to the backend.
+	# e.g., /photos/api/albums → /api/albums on immich-server:2283
+
 	# Immich — photo management
-	handle /photos/* {
+	handle_path /photos/* {
 		reverse_proxy immich-server:2283
 	}
 
 	# Ollama — local LLM inference
-	handle /ollama/* {
+	handle_path /ollama/* {
 		reverse_proxy ollama:11434
 	}
 
-	# Gitea — git hosting
-	handle /gitea/* {
+	# Gitea — git hosting (set GITEA__server__ROOT_URL in compose)
+	handle_path /gitea/* {
 		reverse_proxy gitea:3000
 	}
 
 	# SearxNG — private search
-	handle /search/* {
+	handle_path /search/* {
 		reverse_proxy searxng:8080
 	}
 
-	# Grafana — monitoring
-	handle /grafana/* {
+	# Grafana — monitoring (set GF_SERVER_ROOT_URL in compose)
+	handle_path /grafana/* {
 		reverse_proxy grafana:3000
 	}
 }

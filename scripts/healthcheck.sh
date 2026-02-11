@@ -19,7 +19,7 @@ declare -A SERVICES=(
   [ollama]="11434"
   [gitea]="3000"
   [searxng]="8080"
-  [grafana]="3100"
+  [grafana]="3000"
 )
 
 RED='\033[0;31m'
