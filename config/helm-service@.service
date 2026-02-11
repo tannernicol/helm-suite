@@ -1,0 +1,31 @@
+# Helm Suite — systemd template unit for native services
+#
+# For services that run outside Docker (e.g., Ollama on bare metal
+# for direct GPU access). Install as:
+#
+#   sudo cp helm-service@.service /etc/systemd/system/
+#   sudo systemctl enable --now helm-service@ollama
+#
+# Each instance reads its config from /etc/helm/%i.conf
+
+[Unit]
+Description=Helm Suite — %i
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/helm/%i.conf
+ExecStart=/usr/local/bin/%i serve
+Restart=on-failure
+RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/var/lib/helm/%i
+
+[Install]
+WantedBy=multi-user.target

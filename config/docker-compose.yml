@@ -1,0 +1,152 @@
+# Helm Suite — Multi-service stack
+# Copy to your deploy directory and configure via .env
+#
+# All services bind to 127.0.0.1 or your Tailscale IP.
+# Nothing is exposed to the public internet.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${TAILSCALE_IP:-127.0.0.1}:443:443"
+      - "${TAILSCALE_IP:-127.0.0.1}:80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - authelia
+    networks:
+      - helm
+
+  authelia:
+    image: authelia/authelia:latest
+    restart: unless-stopped
+    expose:
+      - "9091"
+    volumes:
+      - ./authelia:/config
+    environment:
+      TZ: ${TZ:-America/Los_Angeles}
+    networks:
+      - helm
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    restart: unless-stopped
+    expose:
+      - "2283"
+    volumes:
+      - ${UPLOAD_LOCATION:-./uploads}:/usr/src/app/upload
+    environment:
+      DB_HOSTNAME: immich-db
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_DATABASE_NAME: ${DB_DATABASE:-immich}
+      REDIS_HOSTNAME: immich-redis
+    depends_on:
+      - immich-db
+      - immich-redis
+    networks:
+      - helm
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    restart: unless-stopped
+    volumes:
+      - model-cache:/cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - helm
+
+  immich-db:
+    image: tensorchord/pgvecto-rs:pg16-v0.2.0
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_DATABASE:-immich}
+    volumes:
+      - immich_db:/var/lib/postgresql/data
+    networks:
+      - helm
+
+  immich-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - helm
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    expose:
+      - "11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - helm
+
+  gitea:
+    image: gitea/gitea:latest
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA__server__ROOT_URL: https://${DOMAIN:-example.com}/gitea/
+    volumes:
+      - gitea_data:/data
+    networks:
+      - helm
+
+  searxng:
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    expose:
+      - "8080"
+    volumes:
+      - ./searxng:/etc/searxng
+    networks:
+      - helm
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      GF_SERVER_ROOT_URL: https://${DOMAIN:-example.com}/grafana/
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-changeme}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - helm
+
+volumes:
+  caddy_data:
+  caddy_config:
+  immich_db:
+  model-cache:
+  ollama_data:
+  gitea_data:
+  grafana_data:
+
+networks:
+  helm:
+    driver: bridge

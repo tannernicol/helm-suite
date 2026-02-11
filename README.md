@@ -6,12 +6,14 @@
     <a href="https://tannner.com">tannner.com</a> ·
     <a href="https://github.com/tannernicol/helm-suite">GitHub</a>
   </p>
+
+[![CI](https://github.com/tannernicol/helm-suite/actions/workflows/ci.yml/badge.svg)](https://github.com/tannernicol/helm-suite/actions/workflows/ci.yml)
 </div>
 
 ---
 
 <p align="center">
-  <img src="docs/demo.png" alt="Helm Suite demo" width="700" />
+  <img src="docs/demo.gif" alt="Helm Suite demo" width="700" />
 </p>
 
 In 2019, [The Helm](https://www.theverge.com/2019/11/21/20975649/time-best-inventions-2019-list) was named a TIME Best Invention — a personal server that kept your data in your home. They ran out of funding. The mission didn't.

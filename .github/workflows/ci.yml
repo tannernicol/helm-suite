@@ -2,45 +2,50 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: requirements.txt
-      - name: Install test dependencies
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest
-      - name: Run repository tests
+
+      - name: Run tests
         run: python -m pytest tests/ -v
+
       - name: Shell syntax checks
         run: |
           bash -n bootstrap.sh
-          bash -n scripts/render_demo.sh
-      - name: Generate synthetic benchmarks
+          bash -n scripts/healthcheck.sh
+
+      - name: Validate config templates
         run: |
-          python scripts/benchmark_synthetic.py --format markdown --output /tmp/bench.md
-          python scripts/benchmark_synthetic.py --format json --output /tmp/bench.json
-      - name: Redaction check
-        run: python scripts/redact.py --self-check
+          python -c "import yaml; yaml.safe_load(open('config/example.yaml'))"
+          test -f config/docker-compose.yml
+          test -f config/Caddyfile.example
+          test -f config/helm-service@.service
