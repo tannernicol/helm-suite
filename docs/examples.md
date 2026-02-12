@@ -15,8 +15,11 @@ python scripts/demo.py --config config/example.yaml
 {
   "tools": [
     "money",
-    "notes"
+    "notes",
+    "pip-boy-offline-coding-agent",
+    "grimoire-private-security-lab"
   ],
-  "status": "demo"
+  "status": "demo",
+  "security_scope": "authorized_targets_only"
 }
 ```

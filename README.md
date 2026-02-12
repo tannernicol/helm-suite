@@ -30,6 +30,54 @@ Helm Suite is a complete blueprint for replacing cloud services with self-hosted
 
 **Total saved: ~$350/yr** (plus you own your data)
 
+**This repo is the complete blueprint. From zero to a private personal cloud in one bootstrap.**
+
+## What You'll End Up With
+
+- **Reverse proxy** (Caddy) with automatic HTTPS on your own domain
+- **Photo library** (Immich) — Google Photos replacement, fully private
+- **Finance dashboard** (Money App) — Mint replacement for accounts, spending, net worth
+- **Local docs + notes** (Notes App) — Google Docs-style personal knowledge workspace
+- **Private search** (SearXNG + Homelab Search) — Google Search replacement for web + your own corpus
+- **Local Git forge** (Gitea) — GitHub replacement for personal repos and issues
+- **AI stack** (Ollama) — local LLMs, no cloud dependency
+- **Offline coding agent** (Pip-Boy) — local code assistant trained by Claude/Codex workflows
+- **Secure networking** (Tailscale) — access everything from anywhere, zero public exposure
+- **Auth gateway** (Authelia) — SSO for all your services
+- **Automated backups** to NAS with versioned snapshots
+
+## Local App Replication Map
+
+| Cloud SaaS | Local App in Helm Suite | What You Keep |
+| --- | --- | --- |
+| Google Docs | Notes App | Your documents and notes on local storage |
+| Google Photos | Immich / Photos AI | Photo library + metadata under your control |
+| Google Search | SearXNG + Homelab Search | Private search behavior and indexed corpus |
+| Mint | Money App | Financial history and analytics in your DB |
+| GitHub (personal use) | Gitea | Source control, issues, and repo history |
+| Cloud AI copilots | Ollama + Pip-Boy offline coding agent | Prompt history, model outputs, and custom workflows |
+
+## Why This Is Better in Practice
+
+### Speed
+- Most reads are LAN-local, so dashboards and search avoid WAN round-trips.
+- Local indexing/search is immediate against your own data.
+- Local model inference removes cloud queue latency and API retry churn.
+
+### Cost
+- Replaces multiple recurring SaaS subscriptions with one homelab stack.
+- Reduces ongoing API usage for everyday assistant and search workflows.
+
+### Security
+- Zero public exposure by default: private mesh access through Tailscale.
+- Consistent auth boundary with Authelia SSO + 2FA across sensitive apps.
+- Local backups and snapshots reduce outage and vendor lock-in risk.
+
+### Privacy
+- Personal photos, notes, finance data, and search history stay on your hardware.
+- AI workflows can run fully local without sending prompt/context data to third parties.
+- You decide retention, logging, and deletion policies across the entire stack.
+
 ## Quick Start
 
 ```bash
@@ -109,6 +157,48 @@ Most self-hosting guides show you how to run one container. Helm Suite gives you
 - Docker + Docker Compose
 - A domain name (optional but recommended)
 - NVIDIA GPU (optional, for Ollama/Immich ML)
+
+## Threat Model
+
+**In scope — what Helm Suite defends against:**
+
+- **Public internet exposure** — zero services are publicly routable; all traffic flows through Tailscale's WireGuard mesh, eliminating the attack surface of open ports and public DNS
+- **Unauthorized access to dashboards** — Authelia enforces SSO with 2FA on all sensitive services (finance, photos, admin UIs); no service relies solely on "it's on the VPN" for access control
+- **TLS misconfiguration** — Caddy handles certificate issuance and renewal automatically; no manual cert management, no expired certificates, no plaintext HTTP between client and proxy
+- **Vendor lock-in and data loss** — all data (photos, finances, AI models) lives on hardware you control with automated versioned backups to NAS; no third-party service can sunset your data
+
+**Out of scope — what Helm Suite intentionally does not defend against:**
+
+- **Physical access to the NAS** — if an attacker has physical access to the machine, disk encryption and boot security are your responsibility; this blueprint does not configure FDE
+- **Tailscale account compromise** — if your Tailscale identity is compromised, the attacker joins the mesh; Authelia provides a second layer, but Tailscale is the network perimeter
+- **Supply chain attacks on containers** — Immich, Ollama, and other services are pulled from upstream images; Helm Suite does not verify image signatures or run admission control
+- **Lateral movement post-compromise** — services run on the same host without network segmentation between containers; a compromised service may reach other local services
+
+## Architecture (Mermaid)
+
+```mermaid
+flowchart TB
+    Client([Devices\nPhone / Laptop / Desktop])
+    Client -->|WireGuard tunnel| TS[Tailscale Mesh]
+
+    TS --> Caddy[Caddy\nReverse Proxy + TLS]
+
+    Caddy --> Authelia[Authelia\nSSO + 2FA]
+
+    Authelia -->|authenticated| Immich[Immich\nPhoto Library]
+    Authelia -->|authenticated| Money[Money App\nFinance Dashboard]
+    Authelia -->|authenticated| OllamaSvc[Ollama\nLocal LLMs]
+    Authelia -->|authenticated| Custom[Custom Apps]
+
+    Immich --> Storage[(NAS\nPhotos + Backups)]
+    Money --> SQLite[(SQLite)]
+    SQLite --> Storage
+    OllamaSvc --> Models[(Model Weights\nLocal Disk)]
+
+    subgraph Backup Pipeline
+        Systemd[Systemd Timers] -->|versioned snapshots| Storage
+    end
+```
 
 ## Author
 
